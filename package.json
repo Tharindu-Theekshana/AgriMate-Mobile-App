@@ -1,6 +1,6 @@
 {
   "name": "agrimatemobileapp",
-  "main": "expo-router/entry",
+  "main": "index.js",
   "version": "1.0.0",
   "private": true,
   "scripts": {
@@ -16,6 +16,10 @@
     "@react-native-async-storage/async-storage": "2.2.0",
     "@react-native-community/datetimepicker": "9.1.0",
     "@react-native-community/netinfo": "12.0.1",
+    "@react-navigation/bottom-tabs": "^7.18.16",
+    "@react-navigation/native": "^7.3.16",
+    "@react-navigation/native-stack": "^7.18.8",
+    "@reduxjs/toolkit": "^2.12.0",
     "axios": "^1.18.0",
     "drizzle-orm": "^0.45.2",
     "expo": "~56.0.6",
@@ -27,7 +31,6 @@
     "expo-linking": "~56.0.12",
     "expo-localization": "~56.0.6",
     "expo-location": "~56.0.18",
-    "expo-router": "~56.2.7",
     "expo-secure-store": "~56.0.4",
     "expo-splash-screen": "~56.0.10",
     "expo-sqlite": "~56.0.5",
@@ -44,7 +47,8 @@
     "react-native-safe-area-context": "^5.7.0",
     "react-native-screens": "^4.25.2",
     "react-native-web": "~0.21.0",
-    "react-native-worklets": "0.8.3"
+    "react-native-worklets": "0.8.3",
+    "react-redux": "^9.3.0"
   },
   "devDependencies": {
     "@types/react": "~19.2.2",

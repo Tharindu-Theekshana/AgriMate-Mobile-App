@@ -1,0 +1,177 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { createAsyncThunk, createSlice, type PayloadAction } from '@reduxjs/toolkit';
+
+import { setLanguage as persistLanguage } from '@/shared/i18n';
+import { apiErrorMessage } from '@/shared/services/api/client';
+import { clearLocalData } from '@/shared/services/db';
+import { tokenStore } from '@/shared/services/storage/tokenStore';
+import type { LanguageCode, User } from '@/shared/types/api.types';
+
+import { authApi, userApi } from '../services/auth.service';
+
+const GUEST_KEY = 'agrimate.guest';
+
+export type AsyncStatus = 'idle' | 'loading' | 'succeeded' | 'failed';
+
+interface RegisterBody {
+  username: string;
+  email: string;
+  password: string;
+  name: string;
+  phone?: string;
+  language?: string;
+  location?: string;
+  role?: 'FARMER' | 'AGRONOMIST';
+}
+
+interface AuthState {
+  user: User | null;
+  isGuest: boolean;
+  initializing: boolean;
+  status: AsyncStatus;
+  error: string | null;
+}
+
+const initialState: AuthState = {
+  user: null,
+  isGuest: false,
+  initializing: true,
+  status: 'idle',
+  error: null,
+};
+
+export const bootstrapAuthThunk = createAsyncThunk('auth/bootstrap', async () => {
+  try {
+    const token = await tokenStore.getAccess();
+    if (token) {
+      const me = await userApi.me();
+      await persistLanguage(me.language as LanguageCode);
+      return { user: me, isGuest: false };
+    }
+    if ((await AsyncStorage.getItem(GUEST_KEY)) === '1') {
+      return { user: null, isGuest: true };
+    }
+    return { user: null, isGuest: false };
+  } catch {
+    await tokenStore.clear();
+    return { user: null, isGuest: false };
+  }
+});
+
+export const loginThunk = createAsyncThunk(
+  'auth/login',
+  async ({ identifier, password }: { identifier: string; password: string }, { rejectWithValue }) => {
+    try {
+      const res = await authApi.login(identifier, password);
+      await tokenStore.save(res.accessToken, res.refreshToken);
+      await AsyncStorage.removeItem(GUEST_KEY);
+      await persistLanguage(res.user.language as LanguageCode);
+      return res.user;
+    } catch (e) {
+      return rejectWithValue(apiErrorMessage(e));
+    }
+  },
+);
+
+export const registerThunk = createAsyncThunk(
+  'auth/register',
+  async (body: RegisterBody, { rejectWithValue }) => {
+    try {
+      const res = await authApi.register(body);
+      await tokenStore.save(res.accessToken, res.refreshToken);
+      await AsyncStorage.removeItem(GUEST_KEY);
+      await persistLanguage(res.user.language as LanguageCode);
+      return res.user;
+    } catch (e) {
+      return rejectWithValue(apiErrorMessage(e));
+    }
+  },
+);
+
+export const continueAsGuestThunk = createAsyncThunk('auth/continueAsGuest', async () => {
+  await AsyncStorage.setItem(GUEST_KEY, '1');
+});
+
+export const logoutThunk = createAsyncThunk('auth/logout', async () => {
+  await tokenStore.clear();
+  await AsyncStorage.removeItem(GUEST_KEY);
+  try {
+    clearLocalData(); // wipe cached farms/crops/scans for the next user
+  } catch {
+    /* db may not be initialized yet */
+  }
+});
+
+export const refreshUserThunk = createAsyncThunk('auth/refreshUser', async () => {
+  return userApi.me();
+});
+
+const authSlice = createSlice({
+  name: 'auth',
+  initialState,
+  reducers: {
+    setUser(state, action: PayloadAction<User>) {
+      state.user = action.payload;
+    },
+    sessionExpired(state) {
+      state.user = null;
+      state.isGuest = false;
+    },
+    clearAuthError(state) {
+      state.error = null;
+    },
+  },
+  extraReducers: (builder) => {
+    builder
+      .addCase(bootstrapAuthThunk.pending, (state) => {
+        state.initializing = true;
+      })
+      .addCase(bootstrapAuthThunk.fulfilled, (state, action) => {
+        state.user = action.payload.user;
+        state.isGuest = action.payload.isGuest;
+        state.initializing = false;
+      })
+      .addCase(loginThunk.pending, (state) => {
+        state.status = 'loading';
+        state.error = null;
+      })
+      .addCase(loginThunk.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+        state.user = action.payload;
+        state.isGuest = false;
+      })
+      .addCase(loginThunk.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = (action.payload as string | undefined) ?? 'Login failed';
+      })
+      .addCase(registerThunk.pending, (state) => {
+        state.status = 'loading';
+        state.error = null;
+      })
+      .addCase(registerThunk.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+        state.user = action.payload;
+        state.isGuest = false;
+      })
+      .addCase(registerThunk.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = (action.payload as string | undefined) ?? 'Registration failed';
+      })
+      .addCase(continueAsGuestThunk.fulfilled, (state) => {
+        state.user = null;
+        state.isGuest = true;
+      })
+      .addCase(logoutThunk.fulfilled, (state) => {
+        state.user = null;
+        state.isGuest = false;
+        state.status = 'idle';
+        state.error = null;
+      })
+      .addCase(refreshUserThunk.fulfilled, (state, action) => {
+        state.user = action.payload;
+      });
+  },
+});
+
+export const { setUser, sessionExpired, clearAuthError } = authSlice.actions;
+export const authReducer = authSlice.reducer;
