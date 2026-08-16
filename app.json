@@ -1,23 +1,36 @@
 {
   "expo": {
-    "name": "agrimatemobileapp",
+    "name": "AgriMate",
     "slug": "agrimatemobileapp",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "agrimatemobileapp",
-    "userInterfaceStyle": "automatic",
+    "scheme": "agrimate",
+    "userInterfaceStyle": "light",
     "ios": {
-      "icon": "./assets/expo.icon"
+      "icon": "./assets/expo.icon",
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSCameraUsageDescription": "AgriMate uses the camera to take photos of rice leaves for disease detection.",
+        "NSPhotoLibraryUsageDescription": "AgriMate needs photo access so you can pick a leaf image to scan.",
+        "NSLocationWhenInUseUsageDescription": "AgriMate uses your location to map disease detections and tag your farms."
+      }
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#EAF3DE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.RECORD_AUDIO"
+      ],
+      "predictiveBackGestureEnabled": false,
+      "package": "com.anonymous.agrimatemobileapp"
     },
     "web": {
       "output": "static",
@@ -28,13 +41,30 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#208AEF",
+          "backgroundColor": "#2C5F2D",
           "android": {
             "image": "./assets/images/splash-icon.png",
             "imageWidth": 76
           }
         }
-      ]
+      ],
+      "expo-secure-store",
+      "expo-localization",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "AgriMate needs photo access so you can pick a leaf image to scan.",
+          "cameraPermission": "AgriMate uses the camera to take photos of rice leaves for disease detection."
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "AgriMate uses your location to map disease detections and tag your farms."
+        }
+      ],
+      "expo-sqlite",
+      "@react-native-community/datetimepicker"
     ],
     "experiments": {
       "typedRoutes": true,
