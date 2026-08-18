@@ -1,11 +1,10 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createAsyncThunk, createSlice, type PayloadAction } from '@reduxjs/toolkit';
 
-import { setLanguage as persistLanguage } from '@/shared/i18n';
-import { apiErrorMessage } from '@/shared/services/api/client';
+import { apiErrorMessage } from '@/shared/services/api/api';
 import { clearLocalData } from '@/shared/services/db';
 import { tokenStore } from '@/shared/services/storage/tokenStore';
-import type { LanguageCode, User } from '@/shared/types/api.types';
+import type { User } from '@/shared/types/api.types';
 
 import { authApi, userApi } from '../services/auth.service';
 
@@ -19,7 +18,6 @@ interface RegisterBody {
   password: string;
   name: string;
   phone?: string;
-  language?: string;
   location?: string;
   role?: 'FARMER' | 'AGRONOMIST';
 }
@@ -45,7 +43,6 @@ export const bootstrapAuthThunk = createAsyncThunk('auth/bootstrap', async () =>
     const token = await tokenStore.getAccess();
     if (token) {
       const me = await userApi.me();
-      await persistLanguage(me.language as LanguageCode);
       return { user: me, isGuest: false };
     }
     if ((await AsyncStorage.getItem(GUEST_KEY)) === '1') {
@@ -65,7 +62,6 @@ export const loginThunk = createAsyncThunk(
       const res = await authApi.login(identifier, password);
       await tokenStore.save(res.accessToken, res.refreshToken);
       await AsyncStorage.removeItem(GUEST_KEY);
-      await persistLanguage(res.user.language as LanguageCode);
       return res.user;
     } catch (e) {
       return rejectWithValue(apiErrorMessage(e));
@@ -80,7 +76,6 @@ export const registerThunk = createAsyncThunk(
       const res = await authApi.register(body);
       await tokenStore.save(res.accessToken, res.refreshToken);
       await AsyncStorage.removeItem(GUEST_KEY);
-      await persistLanguage(res.user.language as LanguageCode);
       return res.user;
     } catch (e) {
       return rejectWithValue(apiErrorMessage(e));
@@ -96,9 +91,8 @@ export const logoutThunk = createAsyncThunk('auth/logout', async () => {
   await tokenStore.clear();
   await AsyncStorage.removeItem(GUEST_KEY);
   try {
-    clearLocalData(); // wipe cached farms/crops/scans for the next user
+    clearLocalData(); 
   } catch {
-    /* db may not be initialized yet */
   }
 });
 

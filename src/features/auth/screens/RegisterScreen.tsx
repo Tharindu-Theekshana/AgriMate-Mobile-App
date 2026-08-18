@@ -52,7 +52,6 @@ export default function RegisterScreen(_props: Props) {
           phone: phone.trim() || undefined,
           password,
           location: location.trim() || undefined,
-          language: lang,
           role: isAgronomist ? 'AGRONOMIST' : 'FARMER',
         }),
       ).unwrap();

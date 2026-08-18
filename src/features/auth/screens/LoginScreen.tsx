@@ -1,5 +1,5 @@
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, View } from 'react-native';
@@ -34,9 +34,9 @@ export default function LoginScreen({ navigation }: Props) {
     setLoading(true);
     try {
       await dispatch(loginThunk({ identifier: identifier.trim(), password })).unwrap();
-      toast.success(t('auth.loggedIn')); // RootNavigator switches stacks automatically
+      toast.success(t('auth.loggedIn')); 
     } catch (e) {
-      setError(typeof e === 'string' ? e : (e as Error).message); // inline, on-screen
+      setError(typeof e === 'string' ? e : (e as Error).message);
     } finally {
       setLoading(false);
     }

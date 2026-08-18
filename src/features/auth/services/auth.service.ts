@@ -1,4 +1,4 @@
-import { api } from '@/shared/services/api/client';
+import { api } from '@/shared/services/api/api';
 import type { AuthResponse, User } from '@/shared/types/api.types';
 
 export const authApi = {
@@ -8,7 +8,6 @@ export const authApi = {
     password: string;
     name: string;
     phone?: string;
-    language?: string;
     location?: string;
     role?: 'FARMER' | 'AGRONOMIST';
   }) => api.post<AuthResponse>('/api/auth/register', body).then((r) => r.data),
@@ -19,7 +18,7 @@ export const authApi = {
 
 export const userApi = {
   me: () => api.get<User>('/api/users/me').then((r) => r.data),
-  update: (body: Partial<Pick<User, 'name' | 'language' | 'location' | 'profilePhotoUrl'>>) =>
+  update: (body: Partial<Pick<User, 'name' | 'location' | 'profilePhotoUrl'>>) =>
     api.patch<User>('/api/users/me', body).then((r) => r.data),
   uploadPhoto: (imageUri: string) => {
     const form = new FormData();
