@@ -18,7 +18,7 @@ async function get(key: string): Promise<string | null> {
   return isWeb ? AsyncStorage.getItem(key) : SecureStore.getItemAsync(key);
 }
 
-export const tokenStore = {
+export const tokenStorage = {
   getAccess: () => get(ACCESS),
   getRefresh: () => get(REFRESH),
   save: async (access: string, refresh: string) => {

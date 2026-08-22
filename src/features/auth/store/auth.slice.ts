@@ -3,7 +3,7 @@ import { createAsyncThunk, createSlice, type PayloadAction } from '@reduxjs/tool
 
 import { apiErrorMessage } from '@/shared/services/api/api';
 import { clearLocalData } from '@/shared/services/db';
-import { tokenStore } from '@/shared/services/storage/tokenStore';
+import { tokenStorage } from '@/shared/services/storage/tokenStorage';
 import type { User } from '@/shared/types/api.types';
 
 import { authApi, userApi } from '../services/auth.service';
@@ -40,7 +40,7 @@ const initialState: AuthState = {
 
 export const bootstrapAuthThunk = createAsyncThunk('auth/bootstrap', async () => {
   try {
-    const token = await tokenStore.getAccess();
+    const token = await tokenStorage.getAccess();
     if (token) {
       const me = await userApi.me();
       return { user: me, isGuest: false };
@@ -50,7 +50,7 @@ export const bootstrapAuthThunk = createAsyncThunk('auth/bootstrap', async () =>
     }
     return { user: null, isGuest: false };
   } catch {
-    await tokenStore.clear();
+    await tokenStorage.clear();
     return { user: null, isGuest: false };
   }
 });
@@ -60,7 +60,7 @@ export const loginThunk = createAsyncThunk(
   async ({ identifier, password }: { identifier: string; password: string }, { rejectWithValue }) => {
     try {
       const res = await authApi.login(identifier, password);
-      await tokenStore.save(res.accessToken, res.refreshToken);
+      await tokenStorage.save(res.accessToken, res.refreshToken);
       await AsyncStorage.removeItem(GUEST_KEY);
       return res.user;
     } catch (e) {
@@ -74,7 +74,7 @@ export const registerThunk = createAsyncThunk(
   async (body: RegisterBody, { rejectWithValue }) => {
     try {
       const res = await authApi.register(body);
-      await tokenStore.save(res.accessToken, res.refreshToken);
+      await tokenStorage.save(res.accessToken, res.refreshToken);
       await AsyncStorage.removeItem(GUEST_KEY);
       return res.user;
     } catch (e) {
@@ -88,7 +88,7 @@ export const continueAsGuestThunk = createAsyncThunk('auth/continueAsGuest', asy
 });
 
 export const logoutThunk = createAsyncThunk('auth/logout', async () => {
-  await tokenStore.clear();
+  await tokenStorage.clear();
   await AsyncStorage.removeItem(GUEST_KEY);
   try {
     clearLocalData(); 
