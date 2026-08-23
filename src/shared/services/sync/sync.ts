@@ -115,12 +115,12 @@ async function pullFarms(): Promise<void> {
       if (existing.syncState === 'synced') {
         await db
           .update(farms)
-          .set({ name: sf.name, category: sf.category ?? 'CROP', latitude: sf.latitude ?? null, longitude: sf.longitude ?? null, sizeAcres: sf.sizeAcres ?? null, soilType: sf.soilType ?? null })
+          .set({ name: sf.name, latitude: sf.latitude ?? null, longitude: sf.longitude ?? null, sizeAcres: sf.sizeAcres ?? null, soilType: sf.soilType ?? null })
           .where(eq(farms.id, existing.id));
       }
     } else {
       await db.insert(farms).values({
-        id: uuid(), serverId: sf.id, name: sf.name, category: sf.category ?? 'CROP', latitude: sf.latitude ?? null,
+        id: uuid(), serverId: sf.id, name: sf.name, latitude: sf.latitude ?? null,
         longitude: sf.longitude ?? null, sizeAcres: sf.sizeAcres ?? null, soilType: sf.soilType ?? null,
         syncState: 'synced', updatedAt: Date.now(), deleted: false,
       });
@@ -146,7 +146,8 @@ async function pullCrops(): Promise<void> {
         const values = {
           cropType: sc.cropType, variety: sc.variety ?? null, season: sc.season ?? null,
           areaAcres: sc.areaAcres ?? null, plantingDate: sc.plantingDate ?? null,
-          expectedHarvestDate: sc.expectedHarvestDate ?? null, growthStage: sc.growthStage ?? null,
+          expectedHarvestDate: sc.expectedHarvestDate ?? null, growingPeriodDays: sc.growingPeriodDays ?? null,
+          growthStage: sc.growthStage ?? null,
           status: sc.status ?? 'GROWING', harvestDate: sc.harvestDate ?? null, yieldKg: sc.yieldKg ?? null,
           qualityGrade: sc.qualityGrade ?? null, sellingPrice: sc.sellingPrice ?? null,
         };
@@ -198,7 +199,6 @@ async function pullScans(): Promise<void> {
 function farmBody(r: typeof farms.$inferSelect) {
   return {
     name: r.name,
-    category: r.category as 'CROP' | 'ANIMAL',
     latitude: r.latitude ?? undefined,
     longitude: r.longitude ?? undefined,
     sizeAcres: r.sizeAcres ?? undefined,
@@ -213,6 +213,7 @@ function cropBody(r: typeof crops.$inferSelect) {
     areaAcres: r.areaAcres ?? undefined,
     plantingDate: r.plantingDate ?? undefined,
     expectedHarvestDate: r.expectedHarvestDate ?? undefined,
+    growingPeriodDays: r.growingPeriodDays ?? undefined,
     growthStage: r.growthStage ?? undefined,
     status: (r.status as 'GROWING' | 'HARVESTED' | 'FAILED') ?? undefined,
     harvestDate: r.harvestDate ?? undefined,

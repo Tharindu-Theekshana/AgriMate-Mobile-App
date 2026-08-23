@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 
@@ -12,11 +12,6 @@ import { useColors } from '@/features/theme';
 import type { MainStackParamList } from '@/navigation/types';
 import { selectIsAuthenticated } from '../store/auth.selectors';
 
-/**
- * Mobile equivalent of the admin ProtectedRoute: renders children only when
- * `isAuthenticated === true`. Guests see a friendly prompt to create an account.
- * (Token storage on device is SecureStore — cookies/sessionStorage are web-only.)
- */
 export function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const isAuthenticated = useAppSelector(selectIsAuthenticated);
   const { t } = useTranslation();

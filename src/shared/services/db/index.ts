@@ -21,7 +21,6 @@ export function initDb(): void {
       id TEXT PRIMARY KEY NOT NULL,
       server_id INTEGER,
       name TEXT NOT NULL,
-      category TEXT NOT NULL DEFAULT 'CROP',
       latitude REAL,
       longitude REAL,
       size_acres REAL,
@@ -42,6 +41,7 @@ export function initDb(): void {
       area_acres REAL,
       planting_date TEXT,
       expected_harvest_date TEXT,
+      growing_period_days INTEGER,
       growth_stage TEXT,
       status TEXT NOT NULL DEFAULT 'GROWING',
       harvest_date TEXT,
@@ -75,8 +75,7 @@ export function initDb(): void {
     );
   `);
 
-  // Lightweight migrations for installs created before these columns existed.
-  migrate(`ALTER TABLE farms ADD COLUMN category TEXT NOT NULL DEFAULT 'CROP'`);
+  migrate(`ALTER TABLE farms DROP COLUMN category`);
   migrate(`ALTER TABLE crops ADD COLUMN variety TEXT`);
   migrate(`ALTER TABLE crops ADD COLUMN season TEXT`);
   migrate(`ALTER TABLE crops ADD COLUMN area_acres REAL`);
@@ -85,6 +84,7 @@ export function initDb(): void {
   migrate(`ALTER TABLE crops ADD COLUMN yield_kg REAL`);
   migrate(`ALTER TABLE crops ADD COLUMN quality_grade TEXT`);
   migrate(`ALTER TABLE crops ADD COLUMN selling_price REAL`);
+  migrate(`ALTER TABLE crops ADD COLUMN growing_period_days INTEGER`);
 }
 
 function migrate(sql: string): void {

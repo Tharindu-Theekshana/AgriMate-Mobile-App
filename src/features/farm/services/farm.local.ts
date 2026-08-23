@@ -4,7 +4,7 @@ import { db } from '@/shared/services/db';
 import { farms } from '@/shared/services/db/schema';
 import { uuid } from '@/shared/utils/uuid';
 
-import type { FarmCategory, LocalFarm } from '../types/farm.types';
+import type { LocalFarm } from '../types/farm.types';
 
 type Row = typeof farms.$inferSelect;
 
@@ -13,7 +13,6 @@ function toLocal(r: Row): LocalFarm {
     id: r.id,
     serverId: r.serverId ?? null,
     name: r.name,
-    category: (r.category as FarmCategory) ?? 'CROP',
     latitude: r.latitude,
     longitude: r.longitude,
     sizeAcres: r.sizeAcres,
@@ -24,7 +23,6 @@ function toLocal(r: Row): LocalFarm {
 
 export interface FarmInput {
   name: string;
-  category: FarmCategory;
   latitude?: number | null;
   longitude?: number | null;
   sizeAcres?: number | null;
@@ -50,7 +48,6 @@ export async function createFarm(input: FarmInput): Promise<LocalFarm> {
     id,
     serverId: null,
     name: input.name,
-    category: input.category,
     latitude: input.latitude ?? null,
     longitude: input.longitude ?? null,
     sizeAcres: input.sizeAcres ?? null,
@@ -69,7 +66,6 @@ export async function updateFarm(id: string, input: FarmInput): Promise<LocalFar
     .update(farms)
     .set({
       name: input.name,
-      category: input.category,
       latitude: input.latitude ?? null,
       longitude: input.longitude ?? null,
       sizeAcres: input.sizeAcres ?? null,

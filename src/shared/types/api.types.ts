@@ -8,8 +8,9 @@ export interface User {
   email: string;
   name: string;
   phone?: string | null;
-  role: Role;          
-  roles: Role[];     
+  role: Role;
+  roles: Role[];
+  accountType: Role;
   location?: string | null;
   profilePhotoUrl?: string | null;
   agronomistStatus: AgronomistStatus;
@@ -25,7 +26,6 @@ export interface AuthResponse {
 export interface Farm {
   id: number;
   name: string;
-  category: 'CROP' | 'ANIMAL';
   latitude?: number | null;
   longitude?: number | null;
   sizeAcres?: number | null;
@@ -45,6 +45,7 @@ export interface Crop {
   areaAcres?: number | null;
   plantingDate?: string | null;
   expectedHarvestDate?: string | null;
+  growingPeriodDays?: number | null;
   growthStage?: string | null;
   status: CropStatus;
   harvestDate?: string | null;

@@ -10,7 +10,6 @@ export const farms = sqliteTable('farms', {
   id: text('id').primaryKey(),
   serverId: integer('server_id'),
   name: text('name').notNull(),
-  category: text('category').notNull().default('CROP'),
   latitude: real('latitude'),
   longitude: real('longitude'),
   sizeAcres: real('size_acres'),
@@ -31,6 +30,7 @@ export const crops = sqliteTable('crops', {
   areaAcres: real('area_acres'),
   plantingDate: text('planting_date'),
   expectedHarvestDate: text('expected_harvest_date'),
+  growingPeriodDays: integer('growing_period_days'),
   growthStage: text('growth_stage'),
   status: text('status').notNull().default('GROWING'), // GROWING | HARVESTED | FAILED
   harvestDate: text('harvest_date'),
