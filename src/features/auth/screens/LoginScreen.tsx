@@ -1,8 +1,7 @@
-import { Ionicons } from '@expo/vector-icons';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, View } from 'react-native';
+import { Image, Pressable, View } from 'react-native';
 
 import { useAppDispatch } from '@/app/hooks';
 import { Body, Button, FormError, Screen, TextField, Title } from '@/shared/components/ui';
@@ -49,17 +48,11 @@ export default function LoginScreen({ navigation }: Props) {
   return (
     <Screen scroll>
       <View style={{ alignItems: 'center', marginTop: spacing.xxl, marginBottom: spacing.xl }}>
-        <View
-          style={{
-            width: 84,
-            height: 84,
-            borderRadius: 24,
-            backgroundColor: colors.pale,
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}>
-          <Ionicons name="leaf" size={44} color={colors.primary} />
-        </View>
+        <Image
+          source={require('../../../../assets/images/logo.png')}
+          style={{ width: 84, height: 84 }}
+          resizeMode="contain"
+        />
         <Title style={{ marginTop: spacing.lg }}>{t('auth.welcome')}</Title>
         <Body muted style={{ marginTop: spacing.xs }}>{t('auth.subtitle')}</Body>
       </View>
