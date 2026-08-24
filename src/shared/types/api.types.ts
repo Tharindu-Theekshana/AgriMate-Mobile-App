@@ -63,6 +63,13 @@ export interface Treatment {
   appliedDate?: string | null;
 }
 
+export interface StageLog {
+  id: number;
+  cropId: number;
+  stageKey: string;
+  reachedDate: string;
+}
+
 export interface Prediction {
   disease: string;
   confidence: number;

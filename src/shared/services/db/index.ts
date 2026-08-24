@@ -67,6 +67,18 @@ export function initDb(): void {
       deleted INTEGER NOT NULL DEFAULT 0
     );
 
+    CREATE TABLE IF NOT EXISTS crop_stage_logs (
+      id TEXT PRIMARY KEY NOT NULL,
+      server_id INTEGER,
+      crop_id TEXT NOT NULL,
+      server_crop_id INTEGER,
+      stage_key TEXT NOT NULL,
+      reached_date TEXT NOT NULL,
+      sync_state TEXT NOT NULL DEFAULT 'synced',
+      updated_at INTEGER NOT NULL,
+      deleted INTEGER NOT NULL DEFAULT 0
+    );
+
     CREATE TABLE IF NOT EXISTS scans (
       server_id INTEGER PRIMARY KEY NOT NULL,
       json TEXT NOT NULL,
@@ -97,5 +109,5 @@ function migrate(sql: string): void {
 
 // wibe local data on logot
 export function clearLocalData(): void {
-  expoDb.execSync(`DELETE FROM farms; DELETE FROM crops; DELETE FROM treatments; DELETE FROM scans;`);
+  expoDb.execSync(`DELETE FROM farms; DELETE FROM crops; DELETE FROM treatments; DELETE FROM crop_stage_logs; DELETE FROM scans;`);
 }

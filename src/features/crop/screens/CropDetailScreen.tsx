@@ -18,9 +18,12 @@ import type { LocalTreatment } from '@/features/treatment/types/treatment.types'
 import type { MainStackParamList } from '@/navigation/types';
 import { CropFormModal } from '../components/CropFormModal';
 import { HarvestModal } from '../components/HarvestModal';
+import { StageLogModal } from '../components/StageLogModal';
 import { deleteCrop, getCrop } from '../services/crop.local';
+import { deleteStageLog, listStageLogs } from '../services/stageLog.local';
 import type { LocalCrop } from '../types/crop.types';
-import { PADDY_STAGES, cropProgress, resolveStageIndex } from '../utils/crop';
+import type { LocalStageLog } from '../types/stageLog.types';
+import { PADDY_STAGES, cropProgress, resolveStageIndex, type StageKey } from '../utils/crop';
 
 const STATUS_COLOR = (c: Palette, s: string) =>
   s === 'HARVESTED' ? c.info : s === 'FAILED' ? c.danger : c.primary;
@@ -34,14 +37,17 @@ export default function CropDetailScreen({ route, navigation }: Props) {
   const toast = useToast();
   const [crop, setCrop] = useState<LocalCrop | null>(null);
   const [logs, setLogs] = useState<LocalTreatment[]>([]);
+  const [stageLogs, setStageLogs] = useState<LocalStageLog[]>([]);
   const [editOpen, setEditOpen] = useState(false);
   const [harvestOpen, setHarvestOpen] = useState(false);
   const [treatOpen, setTreatOpen] = useState(false);
+  const [stageLogOpen, setStageLogOpen] = useState(false);
 
   const load = useCallback(async () => {
-    const [c, l] = await Promise.all([getCrop(cropId), listTreatments(cropId)]);
+    const [c, l, sl] = await Promise.all([getCrop(cropId), listTreatments(cropId), listStageLogs(cropId)]);
     setCrop(c);
     setLogs(l);
+    setStageLogs(sl);
   }, [cropId]);
 
   useFocusEffect(useCallback(() => { load().catch(() => undefined); }, [load]));
@@ -85,7 +91,17 @@ export default function CropDetailScreen({ route, navigation }: Props) {
     load();
   }
 
+  async function removeStageLog(id: string) {
+    await deleteStageLog(id);
+    void syncNow(true);
+    load();
+  }
+
   const yieldPerAcre = crop.yieldKg && crop.areaAcres ? Math.round(crop.yieldKg / crop.areaAcres) : null;
+  const stageDateByKey = stageLogs.reduce<Partial<Record<StageKey, string>>>((acc, log) => {
+    if (!acc[log.stageKey]) acc[log.stageKey] = log.reachedDate;
+    return acc;
+  }, {});
 
   return (
     <Screen scroll>
@@ -107,7 +123,13 @@ export default function CropDetailScreen({ route, navigation }: Props) {
 
       {crop.plantingDate && (
         <Card style={{ marginTop: spacing.md }}>
-          <Text style={{ fontWeight: '800', color: colors.ink, fontSize: font.md, marginBottom: spacing.sm }}>{t('crop.lifecycle')}</Text>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.sm }}>
+            <Text style={{ fontWeight: '800', color: colors.ink, fontSize: font.md }}>{t('crop.lifecycle')}</Text>
+            <Pressable onPress={() => setStageLogOpen(true)} hitSlop={10} style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+              <Ionicons name="add-circle-outline" size={18} color={colors.primary} />
+              <Text style={{ color: colors.primary, fontWeight: '700', fontSize: font.sm }}>{t('crop.logStage')}</Text>
+            </Pressable>
+          </View>
 
           <View style={{ height: 8, borderRadius: 4, backgroundColor: colors.surfaceAlt, overflow: 'hidden' }}>
             <View style={{ width: `${Math.round(progress.percent * 100)}%`, height: '100%', backgroundColor: colors.primary }} />
@@ -126,16 +148,39 @@ export default function CropDetailScreen({ route, navigation }: Props) {
               const done = i < stageIndex;
               const current = i === stageIndex && crop.status !== 'HARVESTED';
               const color = done || current ? colors.primary : colors.inkFaint;
+              const reachedDate = stageDateByKey[s.key];
               return (
-                <View key={s.key} style={{ flexDirection: 'row', alignItems: 'center' }}>
-                  <Ionicons name={done ? 'checkmark-circle' : current ? 'ellipse' : 'ellipse-outline'} size={18} color={color} />
-                  <Text style={{ marginLeft: spacing.sm, color: current ? colors.ink : colors.inkSoft, fontWeight: current ? '800' : '500' }}>
-                    {t(`crop.stages.${s.key}`)}
-                  </Text>
+                <View key={s.key} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <Ionicons name={done ? 'checkmark-circle' : current ? 'ellipse' : 'ellipse-outline'} size={18} color={color} />
+                    <Text style={{ marginLeft: spacing.sm, color: current ? colors.ink : colors.inkSoft, fontWeight: current ? '800' : '500' }}>
+                      {t(`crop.stages.${s.key}`)}
+                    </Text>
+                  </View>
+                  {reachedDate ? (
+                    <Body muted style={{ fontSize: font.xs }}>{formatDate(reachedDate)}</Body>
+                  ) : null}
                 </View>
               );
             })}
           </View>
+        </Card>
+      )}
+
+      {stageLogs.length > 0 && (
+        <Card style={{ marginTop: spacing.md }}>
+          <Text style={{ fontWeight: '800', color: colors.ink, fontSize: font.md, marginBottom: spacing.sm }}>{t('crop.stageHistory')}</Text>
+          {stageLogs.map((log) => (
+            <View key={log.id} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 6 }}>
+              <Text style={{ color: colors.ink, fontWeight: '600' }}>{t(`crop.stages.${log.stageKey}`)}</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
+                <Body muted style={{ fontSize: font.sm }}>{formatDate(log.reachedDate)}</Body>
+                <Pressable hitSlop={10} onPress={() => removeStageLog(log.id)}>
+                  <Ionicons name="trash-outline" size={18} color={colors.danger} />
+                </Pressable>
+              </View>
+            </View>
+          ))}
         </Card>
       )}
 
@@ -193,6 +238,12 @@ export default function CropDetailScreen({ route, navigation }: Props) {
         cropId={cropId}
         onClose={() => setTreatOpen(false)}
         onSaved={() => { setTreatOpen(false); load(); }}
+      />
+      <StageLogModal
+        visible={stageLogOpen}
+        cropId={cropId}
+        onClose={() => setStageLogOpen(false)}
+        onSaved={() => { setStageLogOpen(false); load(); }}
       />
     </Screen>
   );

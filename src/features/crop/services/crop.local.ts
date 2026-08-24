@@ -5,6 +5,7 @@ import { crops, farms } from '@/shared/services/db/schema';
 import { uuid } from '@/shared/utils/uuid';
 
 import type { CropStatus, LocalCrop, Season } from '../types/crop.types';
+import { addStageLog } from './stageLog.local';
 
 type Row = typeof crops.$inferSelect;
 
@@ -126,6 +127,8 @@ export async function markHarvested(
   crop: LocalCrop,
   harvest: { harvestDate: string; yieldKg?: number | null; qualityGrade?: string | null; sellingPrice?: number | null },
 ): Promise<LocalCrop> {
+
+  await addStageLog(crop.id, 'harvest', harvest.harvestDate);
   return updateCrop(crop.id, {
     variety: crop.variety,
     season: crop.season,

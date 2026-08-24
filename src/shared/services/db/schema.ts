@@ -56,6 +56,18 @@ export const treatments = sqliteTable('treatments', {
   deleted: integer('deleted', { mode: 'boolean' }).notNull().default(false),
 });
 
+export const cropStageLogs = sqliteTable('crop_stage_logs', {
+  id: text('id').primaryKey(),
+  serverId: integer('server_id'),
+  cropId: text('crop_id').notNull(),
+  serverCropId: integer('server_crop_id'),
+  stageKey: text('stage_key').notNull(),
+  reachedDate: text('reached_date').notNull(),
+  syncState: text('sync_state').notNull().default('synced'),
+  updatedAt: integer('updated_at').notNull(),
+  deleted: integer('deleted', { mode: 'boolean' }).notNull().default(false),
+});
+
 export const scans = sqliteTable('scans', {
   serverId: integer('server_id').primaryKey(), // scans are created online
   json: text('json').notNull(),

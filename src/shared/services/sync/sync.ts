@@ -1,13 +1,15 @@
 import { eq } from 'drizzle-orm';
 
 import { cropApi } from '@/features/crop/services/crop.service';
+import { stageLogApi } from '@/features/crop/services/stageLog.service';
+import type { StageKey } from '@/features/crop/utils/crop';
 import { refreshDiseases } from '@/features/disease/services/disease.local';
 import { farmApi } from '@/features/farm/services/farm.service';
 import { cacheScans } from '@/features/scan/services/scan.local';
 import { scanApi } from '@/features/scan/services/scan.service';
 import { treatmentApi } from '@/features/treatment/services/treatment.service';
 import { db } from '@/shared/services/db';
-import { crops, farms, treatments } from '@/shared/services/db/schema';
+import { cropStageLogs, crops, farms, treatments } from '@/shared/services/db/schema';
 import { isOnline } from '@/shared/services/network/online';
 import { uuid } from '@/shared/utils/uuid';
 
@@ -21,9 +23,11 @@ export async function syncNow(isAuthenticated: boolean): Promise<void> {
       await pushFarms();
       await pushCrops();
       await pushTreatments();
+      await pushStageLogs();
       await pullFarms();
       await pullCrops();
       await pullTreatments();
+      await pullStageLogs();
       await pullScans();
     }
     await refreshDiseases().catch(() => undefined);
@@ -46,6 +50,10 @@ async function pushFarms(): Promise<void> {
         await db.update(farms).set({ syncState: 'synced' }).where(eq(farms.id, r.id));
       } else if (r.syncState === 'pending_delete') {
         if (r.serverId != null) await farmApi.remove(r.serverId);
+        const farmCrops = await db.select().from(crops).where(eq(crops.farmId, r.id));
+        for (const c of farmCrops) {
+          await db.delete(cropStageLogs).where(eq(cropStageLogs.cropId, c.id));
+        }
         await db.delete(farms).where(eq(farms.id, r.id));
         await db.delete(crops).where(eq(crops.farmId, r.id));
       }
@@ -69,6 +77,7 @@ async function pushCrops(): Promise<void> {
         const created = await farmApi.addCrop(serverFarmId, cropBody(r));
         await db.update(crops).set({ serverId: created.id, syncState: 'synced' }).where(eq(crops.id, r.id));
         await db.update(treatments).set({ serverCropId: created.id }).where(eq(treatments.cropId, r.id));
+        await db.update(cropStageLogs).set({ serverCropId: created.id }).where(eq(cropStageLogs.cropId, r.id));
       } else if (r.syncState === 'pending_update' && r.serverId != null) {
         await cropApi.update(r.serverId, cropBody(r));
         await db.update(crops).set({ syncState: 'synced' }).where(eq(crops.id, r.id));
@@ -76,6 +85,7 @@ async function pushCrops(): Promise<void> {
         if (r.serverId != null) await cropApi.remove(r.serverId);
         await db.delete(crops).where(eq(crops.id, r.id));
         await db.delete(treatments).where(eq(treatments.cropId, r.id));
+        await db.delete(cropStageLogs).where(eq(cropStageLogs.cropId, r.id));
       }
     } catch {
     }
@@ -97,6 +107,25 @@ async function pushTreatments(): Promise<void> {
       } else if (r.syncState === 'pending_delete') {
         if (r.serverId != null) await treatmentApi.remove(r.serverId);
         await db.delete(treatments).where(eq(treatments.id, r.id));
+      }
+    } catch {
+    }
+  }
+}
+
+async function pushStageLogs(): Promise<void> {
+  const rows = await db.select().from(cropStageLogs);
+  for (const r of rows) {
+    try {
+      if (r.syncState === 'pending_create' && r.serverCropId != null) {
+        const created = await stageLogApi.create(r.serverCropId, {
+          stageKey: r.stageKey,
+          reachedDate: r.reachedDate,
+        });
+        await db.update(cropStageLogs).set({ serverId: created.id, syncState: 'synced' }).where(eq(cropStageLogs.id, r.id));
+      } else if (r.syncState === 'pending_delete') {
+        if (r.serverId != null) await stageLogApi.remove(r.serverId);
+        await db.delete(cropStageLogs).where(eq(cropStageLogs.id, r.id));
       }
     } catch {
     }
@@ -182,6 +211,32 @@ async function pullTreatments(): Promise<void> {
             appliedDate: st.appliedDate ?? null, syncState: 'synced', updatedAt: Date.now(), deleted: false,
           });
         }
+      }
+    } catch {
+    }
+  }
+}
+
+async function pullStageLogs(): Promise<void> {
+  const localCrops = (await db.select().from(crops)).filter((c) => c.serverId != null);
+  for (const c of localCrops) {
+    try {
+      const serverLogs = await stageLogApi.list(c.serverId!);
+      const local = await db.select().from(cropStageLogs).where(eq(cropStageLogs.cropId, c.id));
+      const known = new Set(local.filter((l) => l.serverId != null).map((l) => l.serverId!));
+      for (const sl of serverLogs) {
+        if (!known.has(sl.id)) {
+          await db.insert(cropStageLogs).values({
+            id: uuid(), serverId: sl.id, cropId: c.id, serverCropId: c.serverId!,
+            stageKey: sl.stageKey as StageKey, reachedDate: sl.reachedDate,
+            syncState: 'synced', updatedAt: Date.now(), deleted: false,
+          });
+        }
+      }
+      // keep the crop's cached current stage in sync with the server's own computed latest stage
+      if (serverLogs.length) {
+        const latestKey = [...serverLogs].sort((a, b) => a.reachedDate.localeCompare(b.reachedDate)).at(-1)!.stageKey;
+        await db.update(crops).set({ growthStage: latestKey }).where(eq(crops.id, c.id));
       }
     } catch {
     }
