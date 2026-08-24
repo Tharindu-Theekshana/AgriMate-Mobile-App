@@ -9,7 +9,7 @@ import { Body, Button, Card, EmptyState, Loading, Screen, Title } from '@/shared
 import { useToast } from '@/shared/providers/ToastProvider';
 import { syncNow } from '@/shared/services/sync/sync';
 import { font, radius, spacing, type Palette } from '@/shared/theme/theme';
-import { formatDate, prettifyKey } from '@/shared/utils/format';
+import { formatDate } from '@/shared/utils/format';
 
 import { CropFormModal } from '@/features/crop/components/CropFormModal';
 import { listCrops } from '@/features/crop/services/crop.local';
@@ -165,7 +165,7 @@ function CropCard({
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
         <View style={{ flex: 1, paddingRight: spacing.sm }}>
           <Text style={{ fontWeight: '700', color: colors.ink, fontSize: font.md }}>
-            {crop.variety || prettifyKey(crop.cropType)}{crop.season ? ` · ${t(`crop.${crop.season.toLowerCase()}`)}` : ''}
+            {crop.variety || t('crop.title')}{crop.season ? ` · ${t(`crop.${crop.season.toLowerCase()}`)}` : ''}
           </Text>
           <Body muted style={{ fontSize: font.sm }}>
             {crop.plantingDate ? t('crop.dayN', { n: progress.daysSincePlanting ?? 0 }) : t('crop.notPlanted')}

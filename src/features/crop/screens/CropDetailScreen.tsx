@@ -9,7 +9,7 @@ import { Body, Button, Card, EmptyState, Loading, Screen, Title } from '@/shared
 import { useToast } from '@/shared/providers/ToastProvider';
 import { syncNow } from '@/shared/services/sync/sync';
 import { font, radius, spacing, type Palette } from '@/shared/theme/theme';
-import { formatDate, prettifyKey } from '@/shared/utils/format';
+import { formatDate } from '@/shared/utils/format';
 
 import { useColors } from '@/features/theme';
 import { TreatmentModal } from '@/features/treatment/components/TreatmentModal';
@@ -68,8 +68,7 @@ export default function CropDetailScreen({ route, navigation }: Props) {
   const progress = cropProgress(crop);
   const stageIndex = resolveStageIndex(crop, progress);
   const statusColor = STATUS_COLOR(colors, crop.status);
-  const cropTypeLabel = prettifyKey(crop.cropType);
-  const title = crop.variety || cropTypeLabel;
+  const title = crop.variety || t('crop.title');
 
   async function confirmDelete() {
     const confirmed = await toast.confirm(t('crop.deleteConfirm'), {
@@ -114,7 +113,6 @@ export default function CropDetailScreen({ route, navigation }: Props) {
           </View>
         </View>
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginTop: spacing.sm }}>
-          <Meta colors={colors} icon="pricetag-outline" text={cropTypeLabel} />
           {crop.season ? <Meta colors={colors} icon="calendar" text={t(`crop.${crop.season.toLowerCase()}`)} /> : null}
           {crop.areaAcres ? <Meta colors={colors} icon="resize" text={`${crop.areaAcres} ${t('crop.acres')}`} /> : null}
           {crop.plantingDate ? <Meta colors={colors} icon="leaf" text={formatDate(crop.plantingDate)} /> : null}

@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import * as Location from 'expo-location';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Modal, Pressable, View } from 'react-native';
 
@@ -34,6 +34,16 @@ export function FarmFormModal({
   const [lng, setLng] = useState<number | null>(initial?.longitude ?? null);
   const [saving, setSaving] = useState(false);
   const [locating, setLocating] = useState(false);
+
+  useEffect(() => {
+    if (!visible) return;
+    setName(initial?.name ?? '');
+    setSize(initial?.sizeAcres ? String(initial.sizeAcres) : '');
+    setSoil(initial?.soilType ?? '');
+    setLat(initial?.latitude ?? null);
+    setLng(initial?.longitude ?? null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [visible, initial?.id]);
 
   async function useMyLocation() {
     setLocating(true);

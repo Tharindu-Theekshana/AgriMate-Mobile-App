@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Modal, Pressable, View } from 'react-native';
 
@@ -39,6 +39,18 @@ export function CropFormModal({
   const [harvestDate, setHarvestDate] = useState(initial?.expectedHarvestDate ?? '');
   const [stage, setStage] = useState<StageKey | null>((initial?.growthStage as StageKey) ?? null);
   const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (!visible) return;
+    setVariety(initial?.variety ?? '');
+    setSeason(initial?.season ?? null);
+    setArea(initial?.areaAcres ? String(initial.areaAcres) : '');
+    setPlantingDate(initial?.plantingDate ?? '');
+    setGrowingPeriod(initial?.growingPeriodDays != null ? String(initial.growingPeriodDays) : '105');
+    setHarvestDate(initial?.expectedHarvestDate ?? '');
+    setStage((initial?.growthStage as StageKey) ?? null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [visible, initial?.id]);
 
   const growingPeriodDays = growingPeriod ? Number(growingPeriod) : undefined;
 

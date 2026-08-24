@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Modal, Pressable, View } from 'react-native';
 
@@ -32,6 +32,14 @@ export function HarvestModal({
   const [grade, setGrade] = useState<string | null>(null);
   const [price, setPrice] = useState('');
   const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (!visible) return;
+    setDate(new Date().toISOString().slice(0, 10));
+    setYieldKg('');
+    setGrade(null);
+    setPrice('');
+  }, [visible]);
 
   async function save() {
     setSaving(true);
