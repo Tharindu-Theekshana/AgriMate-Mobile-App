@@ -118,7 +118,7 @@ export default {
   about: {
     title: 'About Us',
     tagline: 'Healthy paddy, better harvest',
-    body: 'AgriMate helps Sri Lankan paddy farmers detect rice leaf diseases from a photo and get trusted treatment advice in their language. Built as a final-year project.',
+    body: 'AgriMate helps Sri Lankan paddy farmers detect rice leaf diseases from a photo and get trusted treatment advice in their language.',
     version: 'Version',
     disclaimer: 'Treatment advice is for guidance only. Consult your local Department of Agriculture for confirmation.',
   },

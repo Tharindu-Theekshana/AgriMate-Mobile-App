@@ -103,11 +103,9 @@ function migrate(sql: string): void {
   try {
     expoDb.execSync(sql);
   } catch {
-    // coloumn already exist
   }
 }
 
-// wibe local data on logot
 export function clearLocalData(): void {
   expoDb.execSync(`DELETE FROM farms; DELETE FROM crops; DELETE FROM treatments; DELETE FROM crop_stage_logs; DELETE FROM scans;`);
 }
