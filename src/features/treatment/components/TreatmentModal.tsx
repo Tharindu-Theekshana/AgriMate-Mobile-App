@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Modal, Pressable, View } from 'react-native';
 
@@ -32,6 +32,14 @@ export function TreatmentModal({
   const [quantity, setQuantity] = useState('');
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
   const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (!visible) return;
+    setProduct('');
+    setType('FERTILIZER');
+    setQuantity('');
+    setDate(new Date().toISOString().slice(0, 10));
+  }, [visible]);
 
   async function save() {
     if (!product.trim()) return;

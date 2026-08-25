@@ -53,20 +53,36 @@ export default function AccountScreen() {
     try {
       const perm = await Location.requestForegroundPermissionsAsync();
       if (!perm.granted) {
-        toast.error(t('common.error'));
+        toast.error('Location permission denied');
         return;
       }
-      const pos = await Location.getCurrentPositionAsync({});
+      const enabled = await Location.hasServicesEnabledAsync();
+      if (!enabled) {
+        toast.error('Please turn on location services on your device');
+        return;
+      }
+      let pos = await Location.getLastKnownPositionAsync();
+      console.log('last known position', pos);
+      if (!pos) {
+        pos = await Promise.race([
+          Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced }),
+          new Promise<never>((_, reject) => setTimeout(() => reject(new Error('Location request timed out')), 15000)),
+        ]);
+        console.log('fresh position', pos);
+      }
+      console.log('coords', pos.coords.latitude, pos.coords.longitude);
       const places = await Location.reverseGeocodeAsync({
         latitude: pos.coords.latitude,
         longitude: pos.coords.longitude,
       });
+      console.log('reverse geocode', places);
       const p = places[0];
       const label = [p?.city ?? p?.subregion, p?.region].filter(Boolean).join(', ') || `${pos.coords.latitude.toFixed(3)}, ${pos.coords.longitude.toFixed(3)}`;
       dispatch(setUser(await userApi.update({ location: label })));
       toast.success(t('account.locationUpdated'));
     } catch (e) {
-      toast.error(apiErrorMessage(e));
+      console.log('location error', e);
+      toast.error(e instanceof Error ? e.message : apiErrorMessage(e));
     } finally {
       setLocating(false);
     }

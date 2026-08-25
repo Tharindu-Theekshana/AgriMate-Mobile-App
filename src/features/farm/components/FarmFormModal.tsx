@@ -53,12 +53,26 @@ export function FarmFormModal({
         toast.error('Location permission denied')
         return;
       }
-      const pos = await Location.getCurrentPositionAsync({});
+      const enabled = await Location.hasServicesEnabledAsync();
+      if (!enabled) {
+        toast.error('Please turn on location services on your device');
+        return;
+      }
+      let pos = await Location.getLastKnownPositionAsync();
+      console.log('last known position', pos);
+      if (!pos) {
+        pos = await Promise.race([
+          Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced }),
+          new Promise<never>((_, reject) => setTimeout(() => reject(new Error('Location request timed out')), 15000)),
+        ]);
+        console.log('fresh position', pos);
+      }
       setLat(pos.coords.latitude);
       setLng(pos.coords.longitude);
-      console.log("location got", pos.coords.latitude, pos.coords.longitude)
+      console.log('location got', pos.coords.latitude, pos.coords.longitude)
     } catch (e) {
-      toast.error((e as Error).message)
+      console.log('location error', e);
+      toast.error(e instanceof Error ? e.message : 'Something went wrong')
     } finally {
       setLocating(false);
     }
