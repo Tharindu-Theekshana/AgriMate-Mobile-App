@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 
 import { useAppSelector } from '@/app/hooks';
 import { selectAuthInitializing, selectIsAuthenticated } from '@/features/auth';
+import { listenForForegroundMessages, registerForPushIfNeeded } from '@/features/notification/services/push';
 import { initDb } from '@/shared/services/db';
 import { onReconnect } from '@/shared/services/network/online';
 import { syncNow } from '@/shared/services/sync/sync';
@@ -28,6 +29,13 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
     void syncNow(isAuthenticated);
     const unsub = onReconnect(() => void syncNow(isAuthenticated));
     return unsub;
+  }, [isAuthenticated, initializing]);
+
+  useEffect(() => {
+    if (initializing || !isAuthenticated) return;
+    void registerForPushIfNeeded();
+    const unsubscribe = listenForForegroundMessages();
+    return unsubscribe;
   }, [isAuthenticated, initializing]);
 
   return <>{children}</>;

@@ -1,4 +1,4 @@
-import { api } from '@/shared/services/api/client';
+import { api } from '@/shared/services/api/api';
 
 export interface VersionCheck {
   updateAvailable: boolean;

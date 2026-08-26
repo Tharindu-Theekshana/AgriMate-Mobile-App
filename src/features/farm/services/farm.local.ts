@@ -42,6 +42,11 @@ export async function getFarm(id: string): Promise<LocalFarm | null> {
   return rows[0] ? toLocal(rows[0]) : null;
 }
 
+export async function getFarmByServerId(serverId: number): Promise<LocalFarm | null> {
+  const rows = await db.select().from(farms).where(eq(farms.serverId, serverId));
+  return rows[0] ? toLocal(rows[0]) : null;
+}
+
 export async function createFarm(input: FarmInput): Promise<LocalFarm> {
   const id = uuid();
   await db.insert(farms).values({

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "197885175029",
+    "project_id": "agrimate-ac2a5",
+    "storage_bucket": "agrimate-ac2a5.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:197885175029:android:f39b3a6cc95fe493ef11bc",
+        "android_client_info": {
+          "package_name": "com.anonymous.agrimatemobileapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDQC7hQskWsGhZXmWm90PyrbvwAz8be3X8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

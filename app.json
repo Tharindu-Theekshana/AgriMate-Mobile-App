@@ -27,10 +27,12 @@
         "android.permission.CAMERA",
         "android.permission.ACCESS_FINE_LOCATION",
         "android.permission.ACCESS_COARSE_LOCATION",
-        "android.permission.RECORD_AUDIO"
+        "android.permission.RECORD_AUDIO",
+        "android.permission.POST_NOTIFICATIONS"
       ],
       "predictiveBackGestureEnabled": false,
-      "package": "com.anonymous.agrimatemobileapp"
+      "package": "com.anonymous.agrimatemobileapp",
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "output": "single",
@@ -47,6 +49,8 @@
           }
         }
       ],
+      "@react-native-firebase/app",
+      "./plugins/withNotifeeMavenRepo.js",
       "expo-secure-store",
       "expo-localization",
       [
