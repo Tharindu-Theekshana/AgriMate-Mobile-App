@@ -6,7 +6,7 @@ import { ScrollView, Text, View } from 'react-native';
 
 import { Body, Card, Loading, SeverityBadge } from '@/shared/components/ui';
 import { font, spacing } from '@/shared/theme/theme';
-import { diseaseName } from '@/shared/utils/format';
+import { diseaseField, diseaseName } from '@/shared/utils/format';
 import type { Disease } from '@/shared/types/api.types';
 
 import { useColors } from '@/features/theme';
@@ -41,10 +41,18 @@ export default function DiseaseDetailScreen({ route, navigation }: Props) {
         <SeverityBadge severity={disease.severity} label={`${t('learn.severity')}: ${t(`severity.${disease.severity}`)}`} />
       </View>
 
-      {disease.symptoms ? <Block icon="eye" title={t('result.symptoms')} body={disease.symptoms} /> : null}
-      {disease.cause ? <Block icon="bug" title={t('result.cause')} body={disease.cause} /> : null}
-      {disease.treatment ? <Block icon="medkit" title={t('result.treatment')} body={disease.treatment} highlight /> : null}
-      {disease.prevention ? <Block icon="shield-checkmark" title={t('result.prevention')} body={disease.prevention} /> : null}
+      {diseaseField(disease, 'symptoms', i18n.language) ? (
+        <Block icon="eye" title={t('result.symptoms')} body={diseaseField(disease, 'symptoms', i18n.language)!} />
+      ) : null}
+      {diseaseField(disease, 'cause', i18n.language) ? (
+        <Block icon="bug" title={t('result.cause')} body={diseaseField(disease, 'cause', i18n.language)!} />
+      ) : null}
+      {diseaseField(disease, 'treatment', i18n.language) ? (
+        <Block icon="medkit" title={t('result.treatment')} body={diseaseField(disease, 'treatment', i18n.language)!} highlight />
+      ) : null}
+      {diseaseField(disease, 'prevention', i18n.language) ? (
+        <Block icon="shield-checkmark" title={t('result.prevention')} body={diseaseField(disease, 'prevention', i18n.language)!} />
+      ) : null}
     </ScrollView>
   );
 }

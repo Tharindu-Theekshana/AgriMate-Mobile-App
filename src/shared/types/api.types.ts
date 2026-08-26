@@ -82,9 +82,17 @@ export interface Disease {
   nameTa?: string | null;
   scientificName?: string | null;
   cause?: string | null;
+  causeSi?: string | null;
+  causeTa?: string | null;
   symptoms?: string | null;
+  symptomsSi?: string | null;
+  symptomsTa?: string | null;
   treatment?: string | null;
+  treatmentSi?: string | null;
+  treatmentTa?: string | null;
   prevention?: string | null;
+  preventionSi?: string | null;
+  preventionTa?: string | null;
   severity: Severity;
 }
 

@@ -2,6 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createAsyncThunk, createSlice, type PayloadAction } from '@reduxjs/toolkit';
 
 import { apiErrorMessage } from '@/shared/services/api/api';
+import { clearLocalData } from '@/shared/services/db';
 import { tokenStorage } from '@/shared/services/storage/tokenStorage';
 import type { User } from '@/shared/types/api.types';
 
@@ -90,7 +91,7 @@ export const logoutThunk = createAsyncThunk('auth/logout', async () => {
   await tokenStorage.clear();
   await AsyncStorage.removeItem(GUEST_KEY);
   try {
-    // clearLocalData(); 
+    clearLocalData();
   } catch {
   }
 });

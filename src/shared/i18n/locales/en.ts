@@ -231,7 +231,9 @@ export default {
   scan: {
     title: 'Scan a leaf',
     selectFarm: 'Select farm',
+    selectFarmHint: 'Which farm is this leaf from? This tags the scan to that farm\'s history and uses its location for the disease outbreak map.',
     selectCrop: 'Select crop (optional)',
+    selectCropHint: 'Pick the exact crop to track this scan against that plant\'s disease history over time.',
     takePhoto: 'Take photo',
     chooseGallery: 'Choose from gallery',
     analyzing: 'Analyzing the leaf…',

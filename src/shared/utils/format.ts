@@ -15,6 +15,17 @@ export function diseaseName(disease: Disease | null | undefined, lang: string): 
   return disease.nameEn;
 }
 
+export function diseaseField(
+  disease: Disease | null | undefined,
+  field: 'cause' | 'symptoms' | 'treatment' | 'prevention',
+  lang: string,
+): string | null | undefined {
+  if (!disease) return null;
+  if (lang === 'si' && disease[`${field}Si`]) return disease[`${field}Si`];
+  if (lang === 'ta' && disease[`${field}Ta`]) return disease[`${field}Ta`];
+  return disease[field];
+}
+
 export function prettifyKey(key: string): string {
   return key
     .split('_')

@@ -68,6 +68,11 @@ export async function getCrop(id: string): Promise<LocalCrop | null> {
   return rows[0] ? toLocal(rows[0]) : null;
 }
 
+export async function getCropByServerId(serverId: number): Promise<LocalCrop | null> {
+  const rows = await db.select().from(crops).where(eq(crops.serverId, serverId));
+  return rows[0] ? toLocal(rows[0]) : null;
+}
+
 export async function createCrop(farmId: string, input: CropInput): Promise<LocalCrop> {
   const id = uuid();
   const farmRows = await db.select().from(farms).where(eq(farms.id, farmId));

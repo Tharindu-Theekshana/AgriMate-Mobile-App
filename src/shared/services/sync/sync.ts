@@ -233,7 +233,6 @@ async function pullStageLogs(): Promise<void> {
           });
         }
       }
-      // keep the crop's cached current stage in sync with the server's own computed latest stage
       if (serverLogs.length) {
         const latestKey = [...serverLogs].sort((a, b) => a.reachedDate.localeCompare(b.reachedDate)).at(-1)!.stageKey;
         await db.update(crops).set({ growthStage: latestKey }).where(eq(crops.id, c.id));
