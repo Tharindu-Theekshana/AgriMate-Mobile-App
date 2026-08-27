@@ -141,6 +141,8 @@ export interface Answer {
   id: number;
   agronomistId: number;
   agronomistName: string;
+  agronomistUsername: string;
+  agronomistPhotoUrl?: string | null;
   body: string;
   attachmentUrl?: string | null;
   createdAt: string;
@@ -150,6 +152,7 @@ export interface Question {
   id: number;
   farmerName: string;
   farmerLocation?: string | null;
+  farmerPhotoUrl?: string | null;
   title: string;
   body?: string | null;
   imageUrl?: string | null;

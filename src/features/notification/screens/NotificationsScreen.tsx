@@ -22,6 +22,8 @@ const ICONS: Record<AppNotification['type'], keyof typeof Ionicons.glyphMap> = {
   QA_REPLY: 'chatbubbles',
   SYSTEM: 'information-circle',
   NEWS: 'megaphone',
+  AGRONOMIST_APPROVED: 'ribbon',
+  AGRONOMIST_REJECTED: 'close-circle',
 };
 
 type Props = { navigation: NativeStackNavigationProp<MainStackParamList, 'Notifications'> };

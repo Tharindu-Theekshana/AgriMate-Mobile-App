@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
 import {
     ActivityIndicator,
     Pressable,
@@ -17,6 +18,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useColors } from '@/features/theme';
 import { font, radius, shadow, spacing, type Palette } from '@/shared/theme/theme';
+import { resolveImageUrl } from '@/shared/utils/format';
 
 export function Screen({
   children,
@@ -160,6 +162,44 @@ export function Card({ children, style, onPress }: { children: React.ReactNode; 
     );
   }
   return <View style={cardStyle}>{children}</View>;
+}
+
+export function Avatar({
+  uri,
+  name,
+  size = 40,
+  style,
+}: {
+  uri?: string | null;
+  name?: string | null;
+  size?: number;
+  style?: ViewProps['style'];
+}) {
+  const c = useColors();
+  const resolved = resolveImageUrl(uri ?? undefined);
+  return (
+    <View
+      style={[
+        {
+          width: size,
+          height: size,
+          borderRadius: size / 2,
+          backgroundColor: c.pale,
+          alignItems: 'center',
+          justifyContent: 'center',
+          overflow: 'hidden',
+        },
+        style,
+      ]}>
+      {resolved ? (
+        <Image source={{ uri: resolved }} style={{ width: '100%', height: '100%' }} contentFit="cover" />
+      ) : (
+        <Text style={{ fontSize: size * 0.4, fontWeight: '800', color: c.primary }}>
+          {(name?.trim()?.[0] ?? '?').toUpperCase()}
+        </Text>
+      )}
+    </View>
+  );
 }
 
 export function SeverityBadge({ severity, label }: { severity?: string | null; label: string }) {
