@@ -14,6 +14,7 @@ export interface User {
   location?: string | null;
   profilePhotoUrl?: string | null;
   agronomistStatus: AgronomistStatus;
+  agronomistProofUrl?: string | null;
   suspended: boolean;
 }
 
@@ -122,7 +123,7 @@ export interface News {
 
 export interface AppNotification {
   id: number;
-  type: 'OUTBREAK' | 'REMINDER' | 'QA_REPLY' | 'SYSTEM' | 'NEWS';
+  type: 'OUTBREAK' | 'REMINDER' | 'QA_REPLY' | 'SYSTEM' | 'NEWS' | 'AGRONOMIST_APPROVED' | 'AGRONOMIST_REJECTED';
   title: string;
   body?: string | null;
   read: boolean;
@@ -138,6 +139,7 @@ export interface Page<T> {
 
 export interface Answer {
   id: number;
+  agronomistId: number;
   agronomistName: string;
   body: string;
   attachmentUrl?: string | null;

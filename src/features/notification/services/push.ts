@@ -70,6 +70,10 @@ const CHANNEL_BY_TYPE: Record<string, keyof Omit<NotifPrefs, 'master'>> = {
   QA_REPLY: 'qa',
   SYSTEM: 'app',
   NEWS: 'app',
+  AGRONOMIST_APPROVED: 'app',
+  AGRONOMIST_REJECTED: 'app',
+  ACCOUNT_SUSPENDED: 'app',
+  ACCOUNT_REACTIVATED: 'app',
 };
 
 export function listenForForegroundMessages(): () => void {

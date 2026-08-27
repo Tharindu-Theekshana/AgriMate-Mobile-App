@@ -20,6 +20,7 @@ interface RegisterBody {
   phone?: string;
   location?: string;
   role?: 'FARMER' | 'AGRONOMIST';
+  proofImageUri?: string;
 }
 
 interface AuthState {

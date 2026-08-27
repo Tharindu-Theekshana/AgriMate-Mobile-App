@@ -6,13 +6,16 @@ import { Pressable } from 'react-native';
 import type { Palette } from '@/shared/theme/theme';
 import { font } from '@/shared/theme/theme';
 
+import CropDetailScreen from '@/features/crop/screens/CropDetailScreen';
 import DiseaseDetailScreen from '@/features/disease/screens/DiseaseDetailScreen';
 import FarmDetailScreen from '@/features/farm/screens/FarmDetailScreen';
-import CropDetailScreen from '@/features/crop/screens/CropDetailScreen';
+import NotificationsScreen from '@/features/notification/screens/NotificationsScreen';
+import AskQuestionScreen from '@/features/question/screens/AskQuestionScreen';
+import QuestionDetailScreen from '@/features/question/screens/QuestionDetailScreen';
+import QuestionsScreen from '@/features/question/screens/QuestionsScreen';
+import HistoryScreen from '@/features/scan/screens/HistoryScreen';
 import ScanDetailScreen from '@/features/scan/screens/ScanDetailScreen';
 import ScanResultScreen from '@/features/scan/screens/ScanResultScreen';
-import HistoryScreen from '@/features/scan/screens/HistoryScreen';
-import NotificationsScreen from '@/features/notification/screens/NotificationsScreen';
 import AboutScreen from '@/features/settings/screens/AboutScreen';
 import AccountScreen from '@/features/settings/screens/AccountScreen';
 import AppearanceScreen from '@/features/settings/screens/AppearanceScreen';
@@ -22,7 +25,6 @@ import { useColors } from '@/features/theme';
 import { MainTabNavigator } from './MainTabNavigator';
 import type { MainStackParamList } from './types';
 
-/** Clean, modern back button used across all stacked screens. */
 function HeaderBack({ tint }: { tint: string }) {
   const navigation = useNavigation();
   if (!navigation.canGoBack()) return null;
@@ -33,7 +35,6 @@ function HeaderBack({ tint }: { tint: string }) {
   );
 }
 
-/** Theme-aware native-stack header (fixes dark-mode header + centers the title). */
 function stackHeader(colors: Palette): NativeStackNavigationOptions {
   return {
     headerStyle: { backgroundColor: colors.surface },
@@ -63,6 +64,9 @@ export function MainNavigator() {
       <Stack.Screen name="ScanResult" component={ScanResultScreen} options={{ headerShown: true, ...header }} />
       <Stack.Screen name="History" component={HistoryScreen} options={{ headerShown: true, ...header }} />
       <Stack.Screen name="Notifications" component={NotificationsScreen} options={{ headerShown: true, ...header }} />
+      <Stack.Screen name="Questions" component={QuestionsScreen} options={{ headerShown: true, ...header }} />
+      <Stack.Screen name="AskQuestion" component={AskQuestionScreen} options={{ headerShown: true, ...header }} />
+      <Stack.Screen name="QuestionDetail" component={QuestionDetailScreen} options={{ headerShown: true, ...header }} />
       <Stack.Screen name="SettingsAppearance" component={AppearanceScreen} options={{ headerShown: true, ...header }} />
       <Stack.Screen name="SettingsLanguage" component={LanguageScreen} options={{ headerShown: true, ...header }} />
       <Stack.Screen name="SettingsNotifications" component={NotificationSettingsScreen} options={{ headerShown: true, ...header }} />

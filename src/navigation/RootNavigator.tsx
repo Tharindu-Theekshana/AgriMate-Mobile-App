@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import { useAppDispatch, useAppSelector } from '@/app/hooks';
 import { Loading } from '@/shared/components/ui';
 
+import { AskAgronomistFab } from '@/features/agronomist/components/AskAgronomistFab';
 import { UpdateGate } from '@/features/appVersion';
 import { bootstrapAuthThunk, selectAuthInitializing, selectIsGuest, selectUser } from '@/features/auth';
 import { restoreLanguageThunk } from '@/features/language';
@@ -12,6 +13,7 @@ import { restoreThemeThunk, useAppTheme } from '@/features/theme';
 
 import { AuthNavigator } from './AuthNavigator';
 import { MainNavigator } from './MainNavigator';
+import { navigationRef } from './navigationRef';
 
 export function RootNavigator() {
   const dispatch = useAppDispatch();
@@ -34,9 +36,10 @@ export function RootNavigator() {
   return (
     <>
       <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
-      <NavigationContainer linking={{ prefixes: ['agrimate://'] }}>
+      <NavigationContainer ref={navigationRef} linking={{ prefixes: ['agrimate://'] }}>
         {signedIn ? <MainNavigator /> : <AuthNavigator />}
       </NavigationContainer>
+      {signedIn && <AskAgronomistFab />}
       <UpdateGate />
     </>
   );

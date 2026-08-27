@@ -61,9 +61,9 @@ export function ScanResultView({ scan, showActions = true }: { scan: Scan; showA
             <Button
               title={t('result.askAgronomist')}
               variant="secondary"
-              icon="information-circle"
+              icon="chatbubble-ellipses"
               style={{ marginTop: spacing.md }}
-              onPress={() => navigation.navigate('DiseaseDetail', { diseaseKey: scan.predictedDisease })}
+              onPress={() => navigation.navigate('AskQuestion', { scanId: scan.id, title: name })}
             />
           )}
         </Card>

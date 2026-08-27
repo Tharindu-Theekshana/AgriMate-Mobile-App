@@ -10,7 +10,24 @@ export const authApi = {
     phone?: string;
     location?: string;
     role?: 'FARMER' | 'AGRONOMIST';
-  }) => api.post<AuthResponse>('/api/auth/register', body).then((r) => r.data),
+    proofImageUri?: string;
+  }) => {
+    const form = new FormData();
+    form.append('username', body.username);
+    form.append('email', body.email);
+    form.append('password', body.password);
+    form.append('name', body.name);
+    if (body.phone) form.append('phone', body.phone);
+    if (body.location) form.append('location', body.location);
+    if (body.role) form.append('role', body.role);
+    if (body.proofImageUri) {
+      const name = body.proofImageUri.split('/').pop() ?? 'proof.jpg';
+      form.append('proofImage', { uri: body.proofImageUri, name, type: 'image/jpeg' } as unknown as Blob);
+    }
+    return api
+      .post<AuthResponse>('/api/auth/register', form, { headers: { 'Content-Type': 'multipart/form-data' } })
+      .then((r) => r.data);
+  },
 
   login: (identifier: string, password: string) =>
     api.post<AuthResponse>('/api/auth/login', { identifier, password }).then((r) => r.data),

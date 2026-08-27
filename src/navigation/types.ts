@@ -22,6 +22,11 @@ export type MainStackParamList = {
   ScanResult: undefined;
   History: undefined;
   Notifications: undefined;
+  Questions: undefined;
+  AskQuestion:
+    | { scanId?: number; title?: string; editQuestion?: { id: number; title: string; body?: string | null; imageUrl?: string | null } }
+    | undefined;
+  QuestionDetail: { questionId: number };
   SettingsAbout: undefined;
   SettingsAccount: undefined;
   SettingsAppearance: undefined;

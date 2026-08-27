@@ -1,4 +1,6 @@
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { Image } from 'expo-image';
+import * as ImagePicker from 'expo-image-picker';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Switch, Text, View } from 'react-native';
@@ -28,17 +30,32 @@ export default function RegisterScreen(_props: Props) {
   const [location, setLocation] = useState('');
   const [lang, setLang] = useState<LanguageCode>('en');
   const [isAgronomist, setIsAgronomist] = useState(false);
+  const [proofUri, setProofUri] = useState<string | null>(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
   async function pickLang(code: LanguageCode) {
     setLang(code);
-    await setLanguage(code); 
+    await setLanguage(code);
+  }
+
+  async function pickProof() {
+    const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!perm.granted) {
+      toast.error(t('common.error'));
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({ quality: 0.7, allowsEditing: true, aspect: [4, 3] });
+    if (!result.canceled && result.assets[0]) setProofUri(result.assets[0].uri);
   }
 
   async function onSubmit() {
     if (!username || !email || !name || password.length < 6) {
       setError(t('auth.registerValidation'));
+      return;
+    }
+    if (isAgronomist && !proofUri) {
+      setError(t('agronomist.proofRequired'));
       return;
     }
     setError('');
@@ -53,11 +70,12 @@ export default function RegisterScreen(_props: Props) {
           password,
           location: location.trim() || undefined,
           role: isAgronomist ? 'AGRONOMIST' : 'FARMER',
+          proofImageUri: isAgronomist ? (proofUri ?? undefined) : undefined,
         }),
       ).unwrap();
-      toast.success(t('auth.registered')); 
+      toast.success(t('auth.registered'));
     } catch (e) {
-      setError(typeof e === 'string' ? e : (e as Error).message); 
+      setError(typeof e === 'string' ? e : (e as Error).message);
     } finally {
       setLoading(false);
     }
@@ -106,6 +124,36 @@ export default function RegisterScreen(_props: Props) {
         </View>
         <Switch value={isAgronomist} onValueChange={setIsAgronomist} trackColor={{ true: colors.accent }} />
       </Card>
+
+      {isAgronomist && (
+        <View style={{ marginBottom: spacing.lg }}>
+          <Text style={{ fontSize: font.sm, fontWeight: '600', color: colors.inkSoft, marginBottom: spacing.xs }}>
+            {t('agronomist.proof')}
+          </Text>
+          <Body muted style={{ fontSize: font.sm, marginBottom: spacing.sm }}>
+            {t('agronomist.proofHint')}
+          </Body>
+          <Pressable
+            onPress={pickProof}
+            style={{
+              height: 140,
+              borderRadius: radius.lg,
+              borderWidth: 2,
+              borderColor: colors.border,
+              borderStyle: 'dashed',
+              backgroundColor: colors.surfaceAlt,
+              alignItems: 'center',
+              justifyContent: 'center',
+              overflow: 'hidden',
+            }}>
+            {proofUri ? (
+              <Image source={{ uri: proofUri }} style={{ width: '100%', height: '100%' }} contentFit="cover" />
+            ) : (
+              <Text style={{ color: colors.inkFaint, fontWeight: '600' }}>{t('agronomist.addProof')}</Text>
+            )}
+          </Pressable>
+        </View>
+      )}
 
       <FormError message={error} />
 
