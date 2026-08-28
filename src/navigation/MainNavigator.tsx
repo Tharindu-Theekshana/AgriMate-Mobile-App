@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { createNativeStackNavigator, type NativeStackNavigationOptions } from '@react-navigation/native-stack';
 import { Pressable } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import type { Palette } from '@/shared/theme/theme';
 import { font } from '@/shared/theme/theme';
@@ -51,6 +52,7 @@ function stackHeader(colors: Palette): NativeStackNavigationOptions {
 const Stack = createNativeStackNavigator<MainStackParamList>();
 
 export function MainNavigator() {
+  const { t } = useTranslation();
   const colors = useColors();
   const header = stackHeader(colors);
 
@@ -60,18 +62,18 @@ export function MainNavigator() {
       <Stack.Screen name="DiseaseDetail" component={DiseaseDetailScreen} options={{ headerShown: true, ...header }} />
       <Stack.Screen name="FarmDetail" component={FarmDetailScreen} options={{ headerShown: true, ...header }} />
       <Stack.Screen name="CropDetail" component={CropDetailScreen} options={{ headerShown: true, ...header }} />
-      <Stack.Screen name="ScanDetail" component={ScanDetailScreen} options={{ headerShown: true, ...header }} />
-      <Stack.Screen name="ScanResult" component={ScanResultScreen} options={{ headerShown: true, ...header }} />
-      <Stack.Screen name="History" component={HistoryScreen} options={{ headerShown: true, ...header }} />
+      <Stack.Screen name="ScanDetail" component={ScanDetailScreen} options={{ title: t('result.title'), headerShown: true, ...header }} />
+      <Stack.Screen name="ScanResult" component={ScanResultScreen} options={{ title: t('result.title'), headerShown: true, ...header }} />
+      <Stack.Screen name="History" component={HistoryScreen} options={{ title: t('history.title'), headerShown: true, ...header }} />
       <Stack.Screen name="Notifications" component={NotificationsScreen} options={{ headerShown: true, ...header }} />
       <Stack.Screen name="Questions" component={QuestionsScreen} options={{ headerShown: true, ...header }} />
       <Stack.Screen name="AskQuestion" component={AskQuestionScreen} options={{ headerShown: true, ...header }} />
-      <Stack.Screen name="QuestionDetail" component={QuestionDetailScreen} options={{ headerShown: true, ...header }} />
-      <Stack.Screen name="SettingsAppearance" component={AppearanceScreen} options={{ headerShown: true, ...header }} />
-      <Stack.Screen name="SettingsLanguage" component={LanguageScreen} options={{ headerShown: true, ...header }} />
-      <Stack.Screen name="SettingsNotifications" component={NotificationSettingsScreen} options={{ headerShown: true, ...header }} />
-      <Stack.Screen name="SettingsAccount" component={AccountScreen} options={{ headerShown: true, ...header }} />
-      <Stack.Screen name="SettingsAbout" component={AboutScreen} options={{ headerShown: true, ...header }} />
+      <Stack.Screen name="QuestionDetail" component={QuestionDetailScreen} options={{ title: t('question.detailTitle'), headerShown: true, ...header }} />
+      <Stack.Screen name="SettingsAppearance" component={AppearanceScreen} options={{ title: t('settings.appearance'), headerShown: true, ...header }} />
+      <Stack.Screen name="SettingsLanguage" component={LanguageScreen} options={{ title: t('settings.language'), headerShown: true, ...header }} />
+      <Stack.Screen name="SettingsNotifications" component={NotificationSettingsScreen} options={{ title: t('settings.notifications'), headerShown: true, ...header }} />
+      <Stack.Screen name="SettingsAccount" component={AccountScreen} options={{ title: t('settings.account'), headerShown: true, ...header }} />
+      <Stack.Screen name="SettingsAbout" component={AboutScreen} options={{ title: t('settings.about'), headerShown: true, ...header }} />
     </Stack.Navigator>
   );
 }

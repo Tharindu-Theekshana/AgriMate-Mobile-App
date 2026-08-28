@@ -2,21 +2,24 @@ import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 
 import { useAppDispatch, useAppSelector } from '@/app/hooks';
-import { Body, Button, Card, Screen } from '@/shared/components/ui';
+import { OtpInput } from '@/shared/components/OtpInput';
+import { Body, Button, Card, FormError, Screen, TextField } from '@/shared/components/ui';
 import { useToast } from '@/shared/providers/ToastProvider';
 import { apiErrorMessage } from '@/shared/services/api/api';
 import { font, radius, spacing } from '@/shared/theme/theme';
 import { resolveImageUrl } from '@/shared/utils/format';
 
-import { userApi } from '@/features/auth/services/auth.service';
+import { authApi, userApi } from '@/features/auth/services/auth.service';
 import { selectIsAuthenticated, selectUser } from '@/features/auth/store/auth.selectors';
-import { logoutThunk, setUser } from '@/features/auth/store/auth.slice';
+import { confirmPasswordResetThunk, logoutThunk, setUser } from '@/features/auth/store/auth.slice';
 import { useColors } from '@/features/theme';
+
+const RESEND_COOLDOWN_SECONDS = 15;
 
 export default function AccountScreen() {
   const { t } = useTranslation();
@@ -27,6 +30,22 @@ export default function AccountScreen() {
   const isAuthenticated = useAppSelector(selectIsAuthenticated);
   const [uploading, setUploading] = useState(false);
   const [locating, setLocating] = useState(false);
+
+  const [changingPassword, setChangingPassword] = useState(false);
+  const [sendingCode, setSendingCode] = useState(false);
+  const [cpCode, setCpCode] = useState('');
+  const [cpNewPassword, setCpNewPassword] = useState('');
+  const [cpError, setCpError] = useState('');
+  const [cpLoading, setCpLoading] = useState(false);
+  const [cpResending, setCpResending] = useState(false);
+  const [cpCooldown, setCpCooldown] = useState(RESEND_COOLDOWN_SECONDS);
+
+  useEffect(() => {
+    if (!changingPassword) return;
+    setCpCooldown(RESEND_COOLDOWN_SECONDS);
+    const id = setInterval(() => setCpCooldown((s) => (s > 0 ? s - 1 : 0)), 1000);
+    return () => clearInterval(id);
+  }, [changingPassword]);
 
   function logout() {
     void dispatch(logoutThunk());
@@ -85,6 +104,61 @@ export default function AccountScreen() {
       toast.error(e instanceof Error ? e.message : apiErrorMessage(e));
     } finally {
       setLocating(false);
+    }
+  }
+
+  async function openChangePassword() {
+    if (!user?.email) return;
+    setSendingCode(true);
+    try {
+      await authApi.requestPasswordReset(user.email);
+      setChangingPassword(true);
+    } catch (e) {
+      toast.error(apiErrorMessage(e));
+    } finally {
+      setSendingCode(false);
+    }
+  }
+
+  function cancelChangePassword() {
+    setChangingPassword(false);
+    setCpCode('');
+    setCpNewPassword('');
+    setCpError('');
+  }
+
+  async function resendChangePasswordCode() {
+    if (!user?.email) return;
+    setCpResending(true);
+    try {
+      await authApi.requestPasswordReset(user.email);
+      setCpCooldown(RESEND_COOLDOWN_SECONDS);
+      toast.success(t('auth.codeResent'));
+    } catch (e) {
+      toast.error(apiErrorMessage(e));
+    } finally {
+      setCpResending(false);
+    }
+  }
+
+  async function confirmChangePassword() {
+    if (!user?.email) return;
+    if (!cpCode.trim() || cpNewPassword.length < 6) {
+      setCpError(t('auth.resetValidation'));
+      return;
+    }
+    setCpError('');
+    setCpLoading(true);
+    try {
+      await dispatch(
+        confirmPasswordResetThunk({ email: user.email, code: cpCode.trim(), newPassword: cpNewPassword }),
+      ).unwrap();
+      toast.success(t('account.passwordChanged'));
+      cancelChangePassword();
+    } catch (e) {
+      setCpError(typeof e === 'string' ? e : (e as Error).message);
+    } finally {
+      setCpLoading(false);
     }
   }
 
@@ -149,6 +223,56 @@ export default function AccountScreen() {
           style={{ borderRadius: radius.md }}
         />
       </Card>
+
+      {!changingPassword ? (
+        <Button
+          title={t('account.changePassword')}
+          icon="lock-closed"
+          variant="secondary"
+          loading={sendingCode}
+          onPress={openChangePassword}
+          style={{ marginBottom: spacing.lg, borderRadius: radius.md }}
+        />
+      ) : (
+        <Card style={{ marginBottom: spacing.lg }}>
+          <Text style={{ fontSize: font.md, fontWeight: '700', color: colors.ink, marginBottom: spacing.xs }}>
+            {t('account.changePassword')}
+          </Text>
+          <Body muted style={{ fontSize: font.sm, marginBottom: spacing.lg }}>
+            {t('account.changePasswordHint', { email: user?.email })}
+          </Body>
+
+          <Text style={{ fontSize: font.sm, fontWeight: '600', color: colors.inkSoft, marginBottom: spacing.sm }}>
+            {t('auth.verificationCode')}
+          </Text>
+          <OtpInput value={cpCode} onChangeText={(v) => { setCpCode(v); if (cpError) setCpError(''); }} />
+
+          <TextField
+            label={t('auth.newPassword')}
+            value={cpNewPassword}
+            onChangeText={(v) => { setCpNewPassword(v); if (cpError) setCpError(''); }}
+            secureTextEntry
+            placeholder="••••••••"
+          />
+
+          <FormError message={cpError} />
+
+          <Button title={t('common.confirm')} loading={cpLoading} onPress={confirmChangePassword} style={{ borderRadius: radius.md }} />
+
+          <Pressable
+            onPress={resendChangePasswordCode}
+            disabled={cpResending || cpCooldown > 0}
+            style={{ alignItems: 'center', marginTop: spacing.lg }}>
+            <Body style={{ color: cpCooldown > 0 ? colors.inkFaint : colors.primary, fontWeight: '700' }}>
+              {cpResending ? t('common.loading') : cpCooldown > 0 ? `${t('auth.resendCode')} (${cpCooldown}s)` : t('auth.resendCode')}
+            </Body>
+          </Pressable>
+
+          <Pressable onPress={cancelChangePassword} style={{ alignItems: 'center', marginTop: spacing.md }}>
+            <Body muted style={{ fontWeight: '600' }}>{t('common.cancel')}</Body>
+          </Pressable>
+        </Card>
+      )}
 
       <Button title={t('auth.logout')} variant="danger" icon="log-out" onPress={logout} />
     </Screen>

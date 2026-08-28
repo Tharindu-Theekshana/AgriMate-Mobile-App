@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { createBottomTabNavigator, type BottomTabBarButtonProps } from '@react-navigation/bottom-tabs';
 import { useTranslation } from 'react-i18next';
 import { Pressable, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { shadow } from '@/shared/theme/theme';
 
@@ -42,6 +43,7 @@ const Tab = createBottomTabNavigator<TabParamList>();
 export function MainTabNavigator() {
   const { t } = useTranslation();
   const colors = useColors();
+  const insets = useSafeAreaInsets();
 
   return (
     <Tab.Navigator
@@ -50,8 +52,8 @@ export function MainTabNavigator() {
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.inkFaint,
         tabBarStyle: {
-          height: 64,
-          paddingBottom: 8,
+          height: 64 + insets.bottom,
+          paddingBottom: 8 + insets.bottom,
           paddingTop: 8,
           backgroundColor: colors.surface,
           borderTopColor: colors.border,

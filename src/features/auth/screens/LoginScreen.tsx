@@ -73,6 +73,10 @@ export default function LoginScreen({ navigation }: Props) {
         placeholder="••••••••"
       />
 
+      <Pressable onPress={() => navigation.navigate('ForgotPassword')} style={{ alignSelf: 'flex-end', marginBottom: spacing.md }}>
+        <Body style={{ color: colors.primary, fontWeight: '700', fontSize: font.sm }}>{t('auth.forgotPassword')}</Body>
+      </Pressable>
+
       <FormError message={error} />
 
       <Button title={t('auth.signIn')} onPress={onSubmit} loading={loading} style={{ marginTop: spacing.sm }} />

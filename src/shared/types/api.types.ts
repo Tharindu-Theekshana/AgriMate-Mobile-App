@@ -16,6 +16,7 @@ export interface User {
   agronomistStatus: AgronomistStatus;
   agronomistProofUrl?: string | null;
   suspended: boolean;
+  emailVerified: boolean;
 }
 
 export interface AuthResponse {

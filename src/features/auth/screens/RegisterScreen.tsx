@@ -1,18 +1,23 @@
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Switch, Text, View } from 'react-native';
 
 import { useAppDispatch } from '@/app/hooks';
+import { OtpInput } from '@/shared/components/OtpInput';
 import { Body, Button, Card, FormError, Screen, TextField, Title } from '@/shared/components/ui';
 import { LANGUAGES, setLanguage, type LanguageCode } from '@/shared/i18n';
 import { useToast } from '@/shared/providers/ToastProvider';
+import { apiErrorMessage } from '@/shared/services/api/api';
 import { font, radius, spacing } from '@/shared/theme/theme';
+
+const RESEND_COOLDOWN_SECONDS = 15;
 
 import { useColors } from '@/features/theme';
 import type { AuthStackParamList } from '@/navigation/types';
+import { authApi } from '../services/auth.service';
 import { registerThunk } from '../store/auth.slice';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'Register'>;
@@ -22,6 +27,7 @@ export default function RegisterScreen(_props: Props) {
   const colors = useColors();
   const toast = useToast();
   const dispatch = useAppDispatch();
+  const [step, setStep] = useState<'form' | 'otp'>('form');
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
@@ -31,8 +37,18 @@ export default function RegisterScreen(_props: Props) {
   const [lang, setLang] = useState<LanguageCode>('en');
   const [isAgronomist, setIsAgronomist] = useState(false);
   const [proofUri, setProofUri] = useState<string | null>(null);
+  const [code, setCode] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [resending, setResending] = useState(false);
+  const [cooldown, setCooldown] = useState(RESEND_COOLDOWN_SECONDS);
+
+  useEffect(() => {
+    if (step !== 'otp') return;
+    setCooldown(RESEND_COOLDOWN_SECONDS);
+    const id = setInterval(() => setCooldown((s) => (s > 0 ? s - 1 : 0)), 1000);
+    return () => clearInterval(id);
+  }, [step]);
 
   async function pickLang(code: LanguageCode) {
     setLang(code);
@@ -49,13 +65,30 @@ export default function RegisterScreen(_props: Props) {
     if (!result.canceled && result.assets[0]) setProofUri(result.assets[0].uri);
   }
 
-  async function onSubmit() {
+  async function onRequestCode() {
     if (!username || !email || !name || password.length < 6) {
       setError(t('auth.registerValidation'));
       return;
     }
     if (isAgronomist && !proofUri) {
       setError(t('agronomist.proofRequired'));
+      return;
+    }
+    setError('');
+    setLoading(true);
+    try {
+      await authApi.requestRegisterOtp(username.trim(), email.trim());
+      setStep('otp');
+    } catch (e) {
+      setError(apiErrorMessage(e));
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function onConfirm() {
+    if (!code.trim()) {
+      setError(t('auth.registerValidation'));
       return;
     }
     setError('');
@@ -71,6 +104,7 @@ export default function RegisterScreen(_props: Props) {
           location: location.trim() || undefined,
           role: isAgronomist ? 'AGRONOMIST' : 'FARMER',
           proofImageUri: isAgronomist ? (proofUri ?? undefined) : undefined,
+          code: code.trim(),
         }),
       ).unwrap();
       toast.success(t('auth.registered'));
@@ -79,6 +113,53 @@ export default function RegisterScreen(_props: Props) {
     } finally {
       setLoading(false);
     }
+  }
+
+  async function onResend() {
+    setResending(true);
+    try {
+      await authApi.requestRegisterOtp(username.trim(), email.trim());
+      setCooldown(RESEND_COOLDOWN_SECONDS);
+      toast.success(t('auth.codeResent'));
+    } catch (e) {
+      toast.error(apiErrorMessage(e));
+    } finally {
+      setResending(false);
+    }
+  }
+
+  function onEditDetails() {
+    setStep('form');
+    setCode('');
+    setError('');
+  }
+
+  if (step === 'otp') {
+    return (
+      <Screen scroll>
+        <Title style={{ marginTop: spacing.lg, marginBottom: spacing.sm }}>{t('auth.verifyEmailTitle')}</Title>
+        <Body muted style={{ marginBottom: spacing.lg }}>{t('auth.verifyEmailHint', { email: email.trim() })}</Body>
+
+        <Text style={{ fontSize: font.sm, fontWeight: '600', color: colors.inkSoft, marginBottom: spacing.sm }}>
+          {t('auth.verificationCode')}
+        </Text>
+        <OtpInput value={code} onChangeText={(v) => { setCode(v); if (error) setError(''); }} />
+
+        <FormError message={error} />
+
+        <Button title={t('auth.verifyAndCreate')} onPress={onConfirm} loading={loading} style={{ marginTop: spacing.sm }} />
+
+        <Pressable onPress={onResend} disabled={resending || cooldown > 0} style={{ alignItems: 'center', marginTop: spacing.lg }}>
+          <Body style={{ color: cooldown > 0 ? colors.inkFaint : colors.primary, fontWeight: '700' }}>
+            {resending ? t('common.loading') : cooldown > 0 ? `${t('auth.resendCode')} (${cooldown}s)` : t('auth.resendCode')}
+          </Body>
+        </Pressable>
+
+        <Pressable onPress={onEditDetails} style={{ alignItems: 'center', marginTop: spacing.md }}>
+          <Body muted style={{ fontWeight: '600' }}>{t('auth.editDetails')}</Body>
+        </Pressable>
+      </Screen>
+    );
   }
 
   return (
@@ -157,7 +238,7 @@ export default function RegisterScreen(_props: Props) {
 
       <FormError message={error} />
 
-      <Button title={t('auth.signUp')} onPress={onSubmit} loading={loading} />
+      <Button title={t('auth.signUp')} onPress={onRequestCode} loading={loading} />
     </Screen>
   );
 }

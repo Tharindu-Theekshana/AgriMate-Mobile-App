@@ -21,6 +21,7 @@ interface RegisterBody {
   location?: string;
   role?: 'FARMER' | 'AGRONOMIST';
   proofImageUri?: string;
+  code: string;
 }
 
 interface AuthState {
@@ -75,6 +76,20 @@ export const registerThunk = createAsyncThunk(
   async (body: RegisterBody, { rejectWithValue }) => {
     try {
       const res = await authApi.register(body);
+      await tokenStorage.save(res.accessToken, res.refreshToken);
+      await AsyncStorage.removeItem(GUEST_KEY);
+      return res.user;
+    } catch (e) {
+      return rejectWithValue(apiErrorMessage(e));
+    }
+  },
+);
+
+export const confirmPasswordResetThunk = createAsyncThunk(
+  'auth/confirmPasswordReset',
+  async ({ email, code, newPassword }: { email: string; code: string; newPassword: string }, { rejectWithValue }) => {
+    try {
+      const res = await authApi.confirmPasswordReset(email, code, newPassword);
       await tokenStorage.save(res.accessToken, res.refreshToken);
       await AsyncStorage.removeItem(GUEST_KEY);
       return res.user;
@@ -151,6 +166,19 @@ const authSlice = createSlice({
       .addCase(registerThunk.rejected, (state, action) => {
         state.status = 'failed';
         state.error = (action.payload as string | undefined) ?? 'Registration failed';
+      })
+      .addCase(confirmPasswordResetThunk.pending, (state) => {
+        state.status = 'loading';
+        state.error = null;
+      })
+      .addCase(confirmPasswordResetThunk.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+        state.user = action.payload;
+        state.isGuest = false;
+      })
+      .addCase(confirmPasswordResetThunk.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = (action.payload as string | undefined) ?? 'Password reset failed';
       })
       .addCase(continueAsGuestThunk.fulfilled, (state) => {
         state.user = null;

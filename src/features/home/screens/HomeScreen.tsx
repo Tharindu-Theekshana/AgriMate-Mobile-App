@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { Skeleton } from '@/shared/components/Skeleton';
 import { Body, Button, Card, EmptyState, SectionHeader, SeverityBadge } from '@/shared/components/ui';
 import { font, radius, shadow, spacing } from '@/shared/theme/theme';
 import type { News, Scan } from '@/shared/types/api.types';
@@ -22,6 +23,34 @@ import { listScans } from '@/features/scan/services/scan.local';
 import { useColors } from '@/features/theme';
 import type { MainStackParamList } from '@/navigation/types';
 
+function FarmRowSkeleton() {
+  return (
+    <Card style={{ marginBottom: spacing.sm }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+        <Skeleton width={22} height={22} radius={11} />
+        <View style={{ marginLeft: spacing.md, flex: 1 }}>
+          <Skeleton width="55%" height={14} style={{ marginBottom: 6 }} />
+          <Skeleton width="30%" height={11} />
+        </View>
+      </View>
+    </Card>
+  );
+}
+
+function ScanRowSkeleton() {
+  return (
+    <Card style={{ marginBottom: spacing.sm }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+        <View style={{ flex: 1, marginRight: spacing.md }}>
+          <Skeleton width="65%" height={14} style={{ marginBottom: 6 }} />
+          <Skeleton width="45%" height={11} />
+        </View>
+        <Skeleton width={64} height={24} radius={12} />
+      </View>
+    </Card>
+  );
+}
+
 export default function HomeScreen() {
   const { t, i18n } = useTranslation();
   const colors = useColors();
@@ -34,6 +63,7 @@ export default function HomeScreen() {
   const [news, setNews] = useState<News[]>([]);
   const [unread, setUnread] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
 
   const load = useCallback(async () => {
     newsApi.list().then(setNews).catch(() => undefined);
@@ -43,8 +73,12 @@ export default function HomeScreen() {
         setFarms(f);
         setScans(s.slice(0, 5));
       } catch {
+      } finally {
+        setInitialLoading(false);
       }
       notificationApi.list().then((n) => setUnread(n.filter((x) => !x.read).length)).catch(() => undefined);
+    } else {
+      setInitialLoading(false);
     }
   }, [isAuthenticated]);
 
@@ -113,7 +147,12 @@ export default function HomeScreen() {
         {isAuthenticated && (
           <View style={{ marginTop: spacing.xl }}>
             <SectionHeader title={t('home.yourFarms')} action={<Pressable onPress={() => navigation.navigate('Tabs', { screen: 'Farms' })}><Text style={{ color: colors.primary, fontWeight: '700' }}>{t('home.seeAll')}</Text></Pressable>} />
-            {farms.length === 0 ? (
+            {initialLoading ? (
+              <>
+                <FarmRowSkeleton />
+                <FarmRowSkeleton />
+              </>
+            ) : farms.length === 0 ? (
               <Card><EmptyState icon="leaf-outline" text={t('home.noFarms')} /></Card>
             ) : (
               farms.slice(0, 3).map((f) => (
@@ -132,10 +171,15 @@ export default function HomeScreen() {
           </View>
         )}
 
-        {isAuthenticated && scans.length > 0 && (
+        {isAuthenticated && (initialLoading || scans.length > 0) && (
           <View style={{ marginTop: spacing.xl }}>
             <SectionHeader title={t('home.recentScans')} action={<Pressable onPress={() => navigation.navigate('History')}><Text style={{ color: colors.primary, fontWeight: '700' }}>{t('home.seeAll')}</Text></Pressable>} />
-            {scans.map((s) => (
+            {initialLoading ? (
+              <>
+                <ScanRowSkeleton />
+                <ScanRowSkeleton />
+              </>
+            ) : scans.map((s) => (
               <Card key={s.id} onPress={() => navigation.navigate('ScanDetail', { scanId: s.id })} style={{ marginBottom: spacing.sm }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                   <View style={{ flex: 1 }}>
