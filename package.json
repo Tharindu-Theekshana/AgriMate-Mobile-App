@@ -9,7 +9,8 @@
     "ios": "expo run:ios",
     "web": "expo start --web",
     "reset-project": "node ./scripts/reset-project.js",
-    "lint": "expo lint"
+    "lint": "expo lint",
+    "test": "jest"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.2",
@@ -52,7 +53,22 @@
     "react-redux": "^9.3.0"
   },
   "devDependencies": {
+    "@react-native/jest-preset": "^0.85.3",
+    "@testing-library/react-native": "^14.0.1",
+    "@types/jest": "^29.5.14",
     "@types/react": "~19.2.2",
+    "jest": "~29.7.0",
+    "jest-expo": "~56.0.5",
+    "test-renderer": "^1.2.0",
     "typescript": "~6.0.3"
+  },
+  "jest": {
+    "preset": "jest-expo",
+    "transformIgnorePatterns": [
+      "node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|sentry-expo|native-base|react-native-svg|@reduxjs/toolkit|immer|redux|react-redux)"
+    ],
+    "setupFiles": [
+      "./jest.setup.js"
+    ]
   }
 }
